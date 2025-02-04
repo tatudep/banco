@@ -1,4 +1,4 @@
-                                                          Instruções para Compilar e Usar (no Windows)
+                                                 Instruções para Compilar e Usar (no Windows)
 
 Com o G++ corretamente instalado, abrir a pasta "banco" no terminal, digitar "g++ -o nome do executavel -Include src/main.cpp src/Cliente.cpp src/Conta.cpp src/ContaCorrente.cpp src/ContaPoupanca.cpp src/Transacao.cpp" e pressionar Enter.
 
