@@ -3,10 +3,10 @@
 #include "ContaPoupanca.h"
 #include <iostream>
 #include <vector>
-#include <memory> // Para std::unique_ptr e std::make_unique
-#include <algorithm> // Para std::remove_if
+#include <memory> // Usado para trabalhar com ponteiros exclusivos (std::unique_ptr)
+#include <algorithm> // Usado para manipulação de containers, como std::remove_if
 
-// Funcao para exibir o menu
+// Função para exibir o menu com as opções do sistema
 void exibirMenu() {
     std::cout << "\n=== Menu ===\n";
     std::cout << "1. Criar cliente\n";
@@ -20,73 +20,73 @@ void exibirMenu() {
     std::cout << "Escolha uma opcao: ";
 }
 
-// Funcao para buscar uma conta pelo ID
+// Função para buscar uma conta a partir do seu ID
 Conta* buscarContaPorId(const std::vector<std::unique_ptr<Conta>>& contas, int id) {
     for (const auto& conta : contas) {
         if (conta->getId() == id) {
-            return conta.get(); // Retorna o ponteiro para a conta
+            return conta.get(); // Retorna a conta encontrada
         }
     }
-    return nullptr; // Retorna nullptr se a conta nao for encontrada
+    return nullptr; // Retorna nullptr caso a conta não seja encontrada
 }
 
-// Funcao para buscar um cliente pelo CPF
+// Função para buscar um cliente a partir do seu CPF
 Cliente* buscarClientePorCpf(std::vector<Cliente>& clientes, const std::string& cpf) {
     for (auto& cliente : clientes) {
         if (cliente.getCpf() == cpf) {
             return &cliente; // Retorna o ponteiro para o cliente
         }
     }
-    return nullptr; // Retorna nullptr se o cliente nao for encontrado
+    return nullptr; // Retorna nullptr caso o cliente não seja encontrado
 }
 
-// Funcao para remover caracteres nao numericos do CPF
+// Função para remover qualquer caractere não numérico do CPF
 std::string limparCpf(const std::string& cpf) {
     std::string cpfLimpo = cpf;
     cpfLimpo.erase(std::remove_if(cpfLimpo.begin(), cpfLimpo.end(), [](char c) {
-        return !isdigit(c);
+        return !isdigit(c); // Remove caracteres que não são números
     }), cpfLimpo.end());
     return cpfLimpo;
 }
 
 int main() {
-    std::vector<Cliente> clientes;
-    std::vector<std::unique_ptr<Conta>> contas;
+    std::vector<Cliente> clientes; // Vetor para armazenar os clientes
+    std::vector<std::unique_ptr<Conta>> contas; // Vetor para armazenar as contas
 
-    // Dados pre-carregados
+    // Criação de alguns clientes e contas pré-carregados
     clientes.emplace_back("Joao Silva", "12345678900", "joao@email.com");
     clientes.emplace_back("Maria Souza", "98765432100", "maria@email.com");
 
     contas.push_back(std::make_unique<ContaCorrente>(101, 5.0)); // Conta corrente com tarifa de R$ 5,00
     contas.push_back(std::make_unique<ContaPoupanca>(201, 0.01)); // Conta poupanca com 1% de rendimento
 
-    // Associar contas aos clientes
+    // Associando contas aos clientes
     Cliente* joao = buscarClientePorCpf(clientes, "12345678900");
     if (joao) {
-        joao->adicionarConta(101); // Joao Silva tem a conta 101
+        joao->adicionarConta(101); // Joao tem a conta 101
     }
 
     Cliente* maria = buscarClientePorCpf(clientes, "98765432100");
     if (maria) {
-        maria->adicionarConta(201); // Maria Souza tem a conta 201
+        maria->adicionarConta(201); // Maria tem a conta 201
     }
 
-    // Realizar algumas transacoes pre-carregadas
+    // Realizando algumas transações pré-carregadas
     contas[0]->depositar(1000); // Deposito de R$ 1000 na conta 101
     contas[0]->sacar(200);      // Saque de R$ 200 na conta 101
-    contas[0]->transferir(300, *contas[1]); // Transferencia de R$ 300 da conta 101 para a conta 201
+    contas[0]->transferir(300, *contas[1]); // Transferência de R$ 300 da conta 101 para a conta 201
 
-    // Aplicar rendimento na conta 201 (Conta Poupanca)
+    // Aplicando rendimento na conta 201 (Conta Poupanca)
     ContaPoupanca* cp = dynamic_cast<ContaPoupanca*>(contas[1].get());
     if (cp) {
-        cp->aplicarRendimento();
+        cp->aplicarRendimento(); // Aplica o rendimento na conta poupanca
     } else {
         std::cout << "A conta nao e uma conta poupanca!\n";
     }
 
     int opcao;
     do {
-        exibirMenu();
+        exibirMenu(); // Exibe o menu de opções
         std::cin >> opcao;
 
         switch (opcao) {
@@ -99,10 +99,9 @@ int main() {
                 std::cout << "Email: ";
                 std::cin >> email;
 
-                // Limpa o CPF (remove pontos e tracos)
-                cpf = limparCpf(cpf);
+                cpf = limparCpf(cpf); // Limpa o CPF de qualquer caractere não numérico
 
-                // Verifica se o CPF ja existe
+                // Verifica se o CPF já está cadastrado
                 if (buscarClientePorCpf(clientes, cpf)) {
                     std::cout << "Erro: CPF ja cadastrado!\n";
                     break;
@@ -123,10 +122,8 @@ int main() {
                 std::cout << "CPF do cliente (apenas numeros): ";
                 std::cin >> cpf;
 
-                // Limpa o CPF (remove pontos e tracos)
-                cpf = limparCpf(cpf);
+                cpf = limparCpf(cpf); // Limpa o CPF
 
-                // Busca o cliente pelo CPF
                 Cliente* cliente = buscarClientePorCpf(clientes, cpf);
                 if (!cliente) {
                     std::cout << "Erro: Cliente nao encontrado!\n";
@@ -159,7 +156,7 @@ int main() {
                     break;
                 }
 
-                // Associa a conta ao cliente
+                // Associa a nova conta ao cliente
                 cliente->adicionarConta(idConta);
                 std::cout << "Conta criada e associada ao cliente!\n";
                 break;
@@ -175,7 +172,7 @@ int main() {
 
                 Conta* conta = buscarContaPorId(contas, idConta);
                 if (conta) {
-                    conta->depositar(valor);
+                    conta->depositar(valor); // Realiza o depósito na conta
                     std::cout << "Deposito realizado com sucesso!\n";
                 } else {
                     std::cout << "ID da conta invalido!\n";
@@ -193,7 +190,7 @@ int main() {
 
                 Conta* conta = buscarContaPorId(contas, idConta);
                 if (conta) {
-                    conta->sacar(valor);
+                    conta->sacar(valor); // Realiza o saque da conta
                 } else {
                     std::cout << "ID da conta invalido!\n";
                 }
@@ -214,7 +211,7 @@ int main() {
                 Conta* contaDestino = buscarContaPorId(contas, idContaDestino);
 
                 if (contaOrigem && contaDestino) {
-                    contaOrigem->transferir(valor, *contaDestino);
+                    contaOrigem->transferir(valor, *contaDestino); // Realiza a transferência entre contas
                     std::cout << "Transferencia realizada com sucesso!\n";
                 } else {
                     std::cout << "ID da conta invalido!\n";
@@ -231,7 +228,7 @@ int main() {
                 if (conta) {
                     ContaPoupanca* cp = dynamic_cast<ContaPoupanca*>(conta);
                     if (cp) {
-                        cp->aplicarRendimento();
+                        cp->aplicarRendimento(); // Aplica rendimento na conta poupança
                         std::cout << "Rendimento aplicado com sucesso!\n";
                     } else {
                         std::cout << "A conta nao e uma conta poupanca!\n";
@@ -249,7 +246,7 @@ int main() {
 
                 Conta* conta = buscarContaPorId(contas, idConta);
                 if (conta) {
-                    // Busca o cliente associado a conta
+                    // Busca o cliente associado a conta e exibe o extrato
                     std::string nomeCliente = "Cliente nao encontrado";
                     for (const auto& cliente : clientes) {
                         if (cliente.temConta(idConta)) {
@@ -257,7 +254,7 @@ int main() {
                             break;
                         }
                     }
-                    conta->extrato(nomeCliente); // Passa o nome do cliente para o extrato
+                    conta->extrato(nomeCliente); // Exibe o extrato da conta
                 } else {
                     std::cout << "ID da conta invalido!\n";
                 }
@@ -274,7 +271,7 @@ int main() {
                 break;
             }
         }
-    } while (opcao != 8);
+    } while (opcao != 8); // Continua até o usuário escolher sair
 
     return 0;
 }
